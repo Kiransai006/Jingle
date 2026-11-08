@@ -134,4 +134,7 @@ pipeline {
         }
         always {
             sh 'docker logout || true'
-            sh
+            sh 'docker image prune -f || true'
+        }
+    }
+}
