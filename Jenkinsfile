@@ -9,7 +9,8 @@ pipeline {
 
     environment {
         DOCKER_REPO = 'kiransai006'
-        NEXUS_URL   = 'http://172.31.33.207:8081'
+        // Private IP of the jingle-tools EC2 instance (SonarQube + Nexus)
+        NEXUS_URL   = 'http://172.31.33.207:8081:8081'
     }
 
     options {
@@ -57,7 +58,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonarqube') {
                     dir('backend') {
-                       sh 'mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar -Dsonar.projectKey=jingle-backend -Dsonar.projectName=jingle-backend'
+                        sh 'mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar -Dsonar.projectKey=jingle-backend -Dsonar.projectName=jingle-backend'
                     }
                 }
             }
@@ -104,8 +105,8 @@ pipeline {
                 }
             }
         }
-    }
-         stage('Deploy to Kubernetes (Helm)') {
+
+        stage('Deploy to Kubernetes (Helm)') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
                                  string(credentialsId: 'jingle-db-password', variable: 'DB_PASSWORD')]) {
@@ -122,18 +123,15 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
         success {
-            echo "Pipeline succeeded. Images: ${env.DOCKER_REPO}/jingle-backend:${env.IMAGE_TAG}, ${env.DOCKER_REPO}/jingle-frontend:${env.IMAGE_TAG}"
+            echo "Deployed ${env.DOCKER_REPO}/jingle-backend:${env.IMAGE_TAG} and ${env.DOCKER_REPO}/jingle-frontend:${env.IMAGE_TAG} to namespace 'jingle'"
         }
         failure {
             echo 'Pipeline failed - check the stage logs above.'
         }
         always {
             sh 'docker logout || true'
-            sh 'docker image prune -f || true'
-        }
-    }
-    
-}
+            sh
