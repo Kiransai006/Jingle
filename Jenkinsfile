@@ -9,7 +9,7 @@ pipeline {
 
     environment {
         DOCKER_REPO = 'kiransai006'
-        NEXUS_URL   = 'http://<TOOLS_PRIVATE_IP>:8081'
+        NEXUS_URL   = 'http://172.31.33.207:8081'
     }
 
     options {
