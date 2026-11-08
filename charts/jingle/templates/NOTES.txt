@@ -1,0 +1,7 @@
+Jingle deployed to namespace {{ .Release.Namespace }}.
+
+Frontend: http://<NODE_PUBLIC_IP>:{{ .Values.frontend.service.nodePort }}
+Backend API (inside cluster): http://jingle-backend:{{ .Values.backend.service.port }}/api/restaurants
+
+Check status:
+  kubectl get pods -n {{ .Release.Namespace }}

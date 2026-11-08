@@ -1,0 +1,41 @@
+# Default values for the Jingle chart.
+# Jenkins overrides image tags and the DB password at deploy time:
+#   --set backend.image.tag=<tag> --set frontend.image.tag=<tag> --set postgres.password=<secret>
+
+frontend:
+  image:
+    repository: kiransai006/jingle-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080          # open http://<k8s-node-ip>:30080
+  resources:
+    requests: { cpu: 50m, memory: 32Mi }
+    limits:   { cpu: 200m, memory: 128Mi }
+
+backend:
+  image:
+    repository: kiransai006/jingle-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  service:
+    port: 8080
+  javaOpts: "-XX:MaxRAMPercentage=75"
+  resources:
+    requests: { cpu: 200m, memory: 384Mi }
+    limits:   { cpu: "1",  memory: 768Mi }
+
+postgres:
+  image: postgres:16-alpine
+  database: jingle
+  username: jingle
+  password: change-me        # overridden from a Jenkins credential
+  storage: 2Gi
+  storageClass: ""           # empty = cluster default (kOps: gp3 EBS via EBS CSI driver)
+  resources:
+    requests: { cpu: 100m, memory: 128Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
