@@ -1,0 +1,59 @@
+# Values for prometheus-community/kube-prometheus-stack (Prometheus + Grafana + Alertmanager)
+# Install:  see monitoring/install-monitoring.sh
+
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090            # http://<worker-ip>:30090
+  prometheusSpec:
+    # Pick up ServiceMonitors / PrometheusRules from every namespace (e.g. 'jingle')
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    retention: 2d
+    resources:
+      requests: { cpu: 200m, memory: 512Mi }
+      limits:   { memory: 1536Mi }
+
+grafana:
+  adminPassword: change-me     # overridden by install script
+  service:
+    type: NodePort
+    nodePort: 30300            # http://<worker-ip>:30300
+  # Import community dashboards automatically
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: jingle
+          orgId: 1
+          folder: Jingle
+          type: file
+          disableDeletion: false
+          options:
+            path: /var/lib/grafana/dashboards/jingle
+  dashboards:
+    jingle:
+      jvm-micrometer:
+        gnetId: 4701             # JVM (Micrometer)
+        revision: 10
+        datasource: Prometheus
+      spring-boot:
+        gnetId: 19004            # Spring Boot 3.x Statistics
+        revision: 1
+        datasource: Prometheus
+
+alertmanager:
+  service:
+    type: NodePort
+    nodePort: 30093            # http://<worker-ip>:30093
+
+# Not needed on kOps (control-plane components are not scrapeable from here)
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false

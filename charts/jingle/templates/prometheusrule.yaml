@@ -1,0 +1,52 @@
+{{- if and .Values.monitoring.enabled (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") }}
+# Alert rules for Jingle (shown in Prometheus -> Alerts and Grafana -> Alerting)
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: jingle-alerts
+  labels:
+    {{- include "jingle.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: jingle.rules
+      rules:
+        - alert: JingleBackendDown
+          expr: up{job="jingle-backend"} == 0 or absent(up{job="jingle-backend"})
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: Jingle backend is down
+            description: Prometheus cannot scrape the jingle-backend pod for 2 minutes.
+
+        - alert: JingleHigh5xxRate
+          expr: |
+            sum(rate(http_server_requests_seconds_count{job="jingle-backend", status=~"5.."}[5m]))
+              /
+            clamp_min(sum(rate(http_server_requests_seconds_count{job="jingle-backend"}[5m])), 0.001)
+              > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Jingle backend 5xx error rate above 5%
+            description: More than 5% of API requests are failing.
+
+        - alert: JingleHighJvmHeap
+          expr: |
+            sum(jvm_memory_used_bytes{job="jingle-backend", area="heap"})
+              /
+            sum(jvm_memory_max_bytes{job="jingle-backend", area="heap"}) > 0.85
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: Jingle backend JVM heap above 85%
+
+        - alert: JinglePodRestarting
+          expr: increase(kube_pod_container_status_restarts_total{namespace="{{ .Release.Namespace }}"}[15m]) > 2
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod {{ "{{" }} $labels.pod {{ "}}" }} restarted more than twice in 15 minutes"
+{{- end }}

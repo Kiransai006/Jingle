@@ -1,0 +1,18 @@
+{{- if and .Values.monitoring.enabled (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") }}
+# Tells Prometheus (kube-prometheus-stack) to scrape the backend's /actuator/prometheus endpoint
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jingle-backend
+  labels:
+    app: jingle-backend
+    {{- include "jingle.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app: jingle-backend
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 15s
+{{- end }}

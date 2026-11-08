@@ -29,6 +29,10 @@ backend:
     requests: { cpu: 200m, memory: 384Mi }
     limits:   { cpu: "1",  memory: 768Mi }
 
+# Creates a ServiceMonitor + alert rules when kube-prometheus-stack is installed
+monitoring:
+  enabled: true
+
 postgres:
   image: postgres:16-alpine
   database: jingle
