@@ -57,7 +57,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonarqube') {
                     dir('backend') {
-                        sh 'mvn -B sonar:sonar -Dsonar.projectKey=jingle-backend -Dsonar.projectName=jingle-backend'
+                       sh 'mvn -B org.sonarsource.scanner.maven:sonar-maven-plugin:5.0.0.4389:sonar -Dsonar.projectKey=jingle-backend -Dsonar.projectName=jingle-backend'
                     }
                 }
             }
