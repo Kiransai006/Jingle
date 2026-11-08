@@ -10,7 +10,7 @@ pipeline {
     environment {
         DOCKER_REPO = 'kiransai006'
         // Private IP of the jingle-tools EC2 instance (SonarQube + Nexus)
-        NEXUS_URL   = 'http://172.31.33.207:8081:8081'
+        NEXUS_URL   = 'http://172.31.33.207:8081'
     }
 
     options {
