@@ -105,6 +105,23 @@ pipeline {
             }
         }
     }
+         stage('Deploy to Kubernetes (Helm)') {
+            steps {
+                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
+                                 string(credentialsId: 'jingle-db-password', variable: 'DB_PASSWORD')]) {
+                    sh '''
+                        helm lint charts/jingle
+                        helm upgrade --install jingle charts/jingle \
+                          --namespace jingle --create-namespace \
+                          --set backend.image.tag=$IMAGE_TAG \
+                          --set frontend.image.tag=$IMAGE_TAG \
+                          --set postgres.password="$DB_PASSWORD" \
+                          --wait --timeout 8m
+                        kubectl -n jingle get pods,svc,pvc
+                    '''
+                }
+            }
+        }
 
     post {
         success {
@@ -118,4 +135,5 @@ pipeline {
             sh 'docker image prune -f || true'
         }
     }
+    
 }
