@@ -1,0 +1,29 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: jingle-backend
+  # Defaults to in-memory H2 so the app runs anywhere.
+  # In Docker / Kubernetes set DB_URL, DB_USERNAME, DB_PASSWORD to point at PostgreSQL.
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:jingle;DB_CLOSE_DELAY=-1}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}

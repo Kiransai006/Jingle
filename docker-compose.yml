@@ -1,0 +1,45 @@
+# Run the full 3-tier stack locally:  docker compose up --build
+# Frontend: http://localhost:3000   Backend: http://localhost:8080/api/restaurants
+services:
+  jingle-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: jingle
+      POSTGRES_USER: jingle
+      POSTGRES_PASSWORD: jingle123
+    ports:
+      - "5432:5432"
+    volumes:
+      - jingle-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jingle -d jingle"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  jingle-backend:
+    build: ./backend
+    image: jingle-backend:local
+    environment:
+      DB_URL: jdbc:postgresql://jingle-db:5432/jingle
+      DB_USERNAME: jingle
+      DB_PASSWORD: jingle123
+    ports:
+      - "8080:8080"
+    depends_on:
+      jingle-db:
+        condition: service_healthy
+
+  jingle-frontend:
+    build: ./frontend
+    image: jingle-frontend:local
+    environment:
+      BACKEND_HOST: jingle-backend
+      BACKEND_PORT: "8080"
+    ports:
+      - "3000:80"
+    depends_on:
+      - jingle-backend
+
+volumes:
+  jingle-db-data:
